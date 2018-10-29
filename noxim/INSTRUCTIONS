@@ -1,0 +1,12 @@
+# noxim-netrace
+ noxim interfaced with netrace traffic generator
+
+# How to build
+Edit Makefile in /bin to edit the paths to systemc and yaml directory
+
+# How to run
+Use the default-configuration file to insert the following
+1. netrace filename
+2. traffic distribution as TRAFFIC_NETRACE
+3. place the compressed netrace traffic trace file in noxim/bin directory
+4. run ./noxim -config ../config_examples/default_config.yaml
