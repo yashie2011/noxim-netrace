@@ -401,18 +401,18 @@ void NoC::trace_tx()
 	if (trace_pkt != NULL)
 	{
 
-		cout<<"NoC trace read: "<<trace_pkt->id<<endl;
+		//cout<<"NoC trace read: "<<trace_pkt->id<<endl;
 
 		if (nt_dependencies_cleared(trace_pkt))
 		{
-			cout<<"No dependencies found, "<<trace_pkt->id<<" "<<+trace_pkt->src<<" "<<+trace_pkt->dst;
-			cout<<" Cycle "<<trace_pkt->cycle<<endl;
+			//cout<<"No dependencies found, "<<trace_pkt->id<<" "<<+trace_pkt->src<<" "<<+trace_pkt->dst;
+			//cout<<" Cycle "<<trace_pkt->cycle<<endl;
 			noc_inject_q.push(trace_pkt);
 		}
 		else
 		{
-			cout<<"Dependencies found, pushing them into wait queue "<<trace_pkt->id;
-			cout<<" Cycle "<<trace_pkt->cycle<<endl;
+			//cout<<"Dependencies found, pushing them into wait queue "<<trace_pkt->id;
+			//cout<<" Cycle "<<trace_pkt->cycle<<endl;
 			wait_q.push(trace_pkt);
 		}
 	}
@@ -457,8 +457,8 @@ void NoC::trace_rx()
 		nt_packet_t* wnt_pkt = wait_q.front();
 		if (nt_dependencies_cleared(wnt_pkt))
 		{
-			cout<<"Dependencies resolved, "<<+wnt_pkt->src<<" "<<+wnt_pkt->dst;
-			cout<<" Cycle "<<wnt_pkt->cycle<<endl;
+			//cout<<"Dependencies resolved, "<<+wnt_pkt->src<<" "<<+wnt_pkt->dst;
+			//cout<<" Cycle "<<wnt_pkt->cycle<<endl;
 			noc_inject_q.push(wnt_pkt);
 			wait_q.pop();
 		}

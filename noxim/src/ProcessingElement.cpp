@@ -37,8 +37,8 @@ void ProcessingElement::rxProcess()
 	    	else
 	    	{
 	    		eject_q.push(nt_pkt);
-	    		cout<<"Received a packet at destination "<<nt_pkt->id;
-	    		cout<<" cycle: "<<sc_time_stamp().to_double() / GlobalParams::clock_period_ps<<endl;
+	    		//cout<<"Received a packet at destination "<<nt_pkt->id;
+	    		//cout<<" cycle: "<<sc_time_stamp().to_double() / GlobalParams::clock_period_ps<<endl;
 	    	}
 	    }
 	    current_level_rx = 1 - current_level_rx;	// Negate the old value for Alternating Bit Protocol (ABP)

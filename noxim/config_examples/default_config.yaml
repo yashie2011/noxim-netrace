@@ -110,7 +110,7 @@ clock_period_ps: 1000
 # duration of reset signal assertion, expressed in cycles
 reset_time: 1000
 # overal simulation lenght, expressed in cycles
-simulation_time: 100000
+simulation_time: 1000000000
 # collect stats after a given number of cycles
 stats_warm_up_time: 1000
 # power breakdown, nodes communication details
@@ -154,5 +154,5 @@ probability_of_retransmission: 0.1
 traffic_distribution: TRAFFIC_NETRACE
 # when traffic table based is specified, use the following
 # configuration file
-netrace_file: "multiregion.tra.bz2"
+netrace_file: "blackscholes_64c_simsmall.tra.bz2"
 traffic_table_filename: "t.txt"
