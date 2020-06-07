@@ -154,7 +154,9 @@ struct GlobalParams {
 
     //yaswanth netrace interface
     static string netrace_file;
-
+    static string exp_type;
+    static string res_file;
+    
     static string config_filename;
     static string power_config_filename;
     static int clock_period_ps;

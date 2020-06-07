@@ -16,6 +16,37 @@ int ProcessingElement::randInt(int min, int max)
 	(int) ((double) (max - min + 1) * rand() / (RAND_MAX + 1.0));
 }
 
+void ProcessingElement::packet_dec(){
+	while(true){
+		wait();
+		if(dec_queue_in.empty()){
+			continue;
+		}
+		//cout<<"packet reached destination "<<local_id<<endl;
+		Flit flit_tmp = dec_queue_in.front();
+			
+		std::map<string, int>::iterator it;
+		it = enc_lat.find(GlobalParams::exp_type);
+		assert(it != enc_lat.end());
+		wait(it->second);
+		
+		nt_packet_t* nt_pkt = flit_tmp.nt_pkt;
+		if (nt_pkt == NULL)
+		{
+			cout<<"Error, this cant be null"<<endl;
+			exit(0);
+		}
+		else
+		{
+			eject_q.push(nt_pkt);
+			//cout<<"Received a packet at destination "<<nt_pkt->id;
+			//cout<<" cycle: "<<sc_time_stamp().to_double() / GlobalParams::clock_period_ps<<endl;
+		}
+		dec_queue_in.pop();
+				
+	}
+}
+
 void ProcessingElement::rxProcess()
 {
     if (reset.read()) {
@@ -28,23 +59,31 @@ void ProcessingElement::rxProcess()
 	    // netrace interface. Check for the nt_packet pointer and inject it into the eject queue
 	    if (flit_tmp.flit_type == FLIT_TYPE_HEAD)
 	    {
-	    	nt_packet_t* nt_pkt = flit_tmp.nt_pkt;
-	    	if (nt_pkt == NULL)
-	    	{
-	    		cout<<"Error, this cant be null"<<endl;
-	    		exit(0);
-	    	}
-	    	else
-	    	{
-	    		eject_q.push(nt_pkt);
-	    		//cout<<"Received a packet at destination "<<nt_pkt->id;
-	    		//cout<<" cycle: "<<sc_time_stamp().to_double() / GlobalParams::clock_period_ps<<endl;
-	    	}
+			dec_queue_in.push(flit_tmp);
+
 	    }
 	    current_level_rx = 1 - current_level_rx;	// Negate the old value for Alternating Bit Protocol (ABP)
 	}
 	ack_rx.write(current_level_rx);
     }
+}
+
+void ProcessingElement::packet_enc(){
+	
+	while(true){
+		wait();
+		if(enc_queue_in.empty()){
+			continue;
+		}
+		Packet packet = enc_queue_in.front();
+			
+		std::map<string, int>::iterator it;
+		it = enc_lat.find(GlobalParams::exp_type);
+		assert(it != enc_lat.end());
+		wait(it->second);
+		packet_queue.push(packet);
+		enc_queue_in.pop();
+	}
 }
 
 void ProcessingElement::txProcess()
@@ -55,12 +94,14 @@ void ProcessingElement::txProcess()
 	transmittedAtPreviousCycle = false;
     } else {
 	Packet packet;
-
+	
+	
 
 	if (canShot(packet)) {
 		// netrace interface
-		if (packet.nt_pkt != NULL)
-			packet_queue.push(packet);
+		if (packet.nt_pkt != nullptr)
+		  enc_queue_in.push(packet);
+			
 	    transmittedAtPreviousCycle = true;
 	} else
 	    transmittedAtPreviousCycle = false;
@@ -327,6 +368,7 @@ Packet ProcessingElement::trafficRandom()
 
     return p;
 }
+
 // TODO: for testing only
 Packet ProcessingElement::trafficTest()
 {
@@ -391,33 +433,35 @@ Packet ProcessingElement::traffic_netrace()
 	p.src_id = local_id;
 	Coord src, dst;
     nt_packet_t* nt_pkt = inject_q.front();
-    if (nt_pkt == NULL)
+    if (nt_pkt == nullptr)
     {
-    	p.make(0,0,0,0,NULL);  //represents an empty packet
+    	p.make(0,0,0,0,0);  //represents an empty packet
     	return p;
     	//exit(0);
     }
     else if(nt_pkt->cycle > (sc_time_stamp().to_double() / GlobalParams::clock_period_ps) )
     {
-    	p.make(0,0,0,0,NULL);  //represents an empty packet
+    	p.make(0,0,0,0,0);  //represents an empty packet
     	//exit(0);
     	return p;
     }
-    //cout<<"PE sending packet"<<endl;
-    src.x = id2Coord(p.src_id).x;
-    src.y = id2Coord(p.src_id).y;
-    dst.x = id2Coord(nt_pkt->dst).x;
-    dst.y = id2Coord(nt_pkt->dst).y;
-    fixRanges(src, dst);
-    p.dst_id = coord2Id(dst);
-    p.nt_pkt = nt_pkt;
+    else{
+		//cout<<"PE "<<local_id<<" sending packet"<<endl;
+		src.x = id2Coord(p.src_id).x;
+		src.y = id2Coord(p.src_id).y;
+		dst.x = id2Coord(int(nt_pkt->dst)).x;
+		dst.y = id2Coord(int(nt_pkt->dst)).y;
+		fixRanges(src, dst);
+		p.dst_id = coord2Id(dst);
+		p.nt_pkt = nt_pkt;
 
-    p.vc_id = randInt(0,GlobalParams::n_virtual_channels-1);
-    p.timestamp = sc_time_stamp().to_double() / GlobalParams::clock_period_ps;
-    p.size = p.flit_left = getRandomSize();
+		p.vc_id = randInt(0,GlobalParams::n_virtual_channels-1);
+		p.timestamp = sc_time_stamp().to_double() / GlobalParams::clock_period_ps;
+		p.size = p.flit_left = getRandomSize();
 
-    inject_q.pop();
-    return p;
+		inject_q.pop();
+		return p;
+	}
 
 }
 

@@ -34,6 +34,8 @@ string GlobalParams::power_config_filename;
 
 //netrace interface
 string GlobalParams::netrace_file;
+string GlobalParams::exp_type;
+string GlobalParams::res_file;
 
 int GlobalParams::clock_period_ps;
 int GlobalParams::simulation_time;

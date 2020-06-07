@@ -16,9 +16,14 @@
 #include <iomanip>
 #include "NoC.h"
 #include "Tile.h"
+#include "yaml-cpp/yaml.h"
 using namespace std;
 
 class GlobalStats {
+
+  private:
+  
+	YAML::Node results;
 
   public:
 

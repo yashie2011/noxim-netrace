@@ -374,6 +374,7 @@ void NoC::asciiMonitor()
 
 void NoC::start_trace()
 {
+	
 	if(GlobalParams::traffic_distribution == TRAFFIC_NETRACE)
 	{
 		nt_open_trfile(GlobalParams::netrace_file.c_str());
@@ -387,44 +388,52 @@ void NoC::start_trace()
 }
 void NoC::trace_tx()
 {
-    // get a trace packet
-	//cout<<"Reading trace packet ";
-	nt_packet_t* trace_pkt = nt_read_packet();
-
-	if(trace_pkt == NULL && wait_q.is_empty())
-	{
-		cout<<"Trace completed"<<endl;
-		sc_stop();
+	if(reset.read()){
+		//continue;
 	}
-	// check if its dependencies are resolved
-	// if there are dependencies push in wait queue
-	if (trace_pkt != NULL)
-	{
+	else{
+		// get a trace packet
+		//cout<<"Reading trace packet ";
+		nt_packet_t* trace_pkt = nt_read_packet();
 
-		//cout<<"NoC trace read: "<<trace_pkt->id<<endl;
-
-		if (nt_dependencies_cleared(trace_pkt))
+		if(trace_pkt == NULL && wait_q.is_empty())
 		{
-			//cout<<"No dependencies found, "<<trace_pkt->id<<" "<<+trace_pkt->src<<" "<<+trace_pkt->dst;
-			//cout<<" Cycle "<<trace_pkt->cycle<<endl;
-			noc_inject_q.push(trace_pkt);
+			cout<<"Trace completed"<<endl;
+			sc_stop();
 		}
-		else
+		else if(packets_recv >= 500000){
+			sc_stop();
+		}
+		// check if its dependencies are resolved
+		// if there are dependencies push in wait queue
+		if (trace_pkt != NULL)
 		{
-			//cout<<"Dependencies found, pushing them into wait queue "<<trace_pkt->id;
-			//cout<<" Cycle "<<trace_pkt->cycle<<endl;
-			wait_q.push(trace_pkt);
+
+			//cout<<"NoC trace read: "<<trace_pkt->id<<endl;
+
+			if (nt_dependencies_cleared(trace_pkt))
+			{
+				//cout<<"No dependencies found, "<<trace_pkt->id<<" "<<+trace_pkt->src<<" "<<+trace_pkt->dst;
+				//cout<<" Cycle "<<trace_pkt->cycle<<" packet_cnt "<<packets_sent<<endl;
+				noc_inject_q.push(trace_pkt);
+				packets_sent++;
+			}
+			else
+			{
+				//cout<<"Dependencies found, pushing them into wait queue "<<trace_pkt->id;
+				//cout<<" Cycle "<<trace_pkt->cycle<<endl;
+				wait_q.push(trace_pkt);
+			}
+		}
+		// check the front of inject queue
+		if(!noc_inject_q.is_empty())
+		{
+			nt_packet_t* nt_pkt = noc_inject_q.pop();
+			// send it to the inject queue of PE
+			//cout<<"sending the packet to its core "<<+nt_pkt->src<<" and destination "<<+nt_pkt->dst<<endl;
+			t[id2Coord(nt_pkt->src).x][id2Coord(nt_pkt->src).y]->pe->inject_q.push(nt_pkt);
 		}
 	}
-	// check the front of inject queue
-	if(!noc_inject_q.is_empty())
-	{
-		nt_packet_t* nt_pkt = noc_inject_q.pop();
-		// send it to the inject queue of PE
-		//cout<<"sending the packet to its core "<<nt_pkt->id<<endl;
-		t[id2Coord(nt_pkt->src).x][id2Coord(nt_pkt->src).y]->pe->inject_q.push(nt_pkt);
-	}
-
 
 }
 
@@ -438,7 +447,7 @@ void NoC::trace_rx()
 		{
 			if(!t[i][j]->pe->eject_q.is_empty())
 			{
-				//cout<<"Resolving dependencies"<<endl;
+				//cout<<"Packet recv "<<endl;
 				nt_packet_t* nt_pkt = t[i][j]->pe->eject_q.pop();
 				if(nt_pkt == NULL)
 				{
@@ -446,6 +455,7 @@ void NoC::trace_rx()
 					exit(0);
 				}
 				nt_clear_dependencies_free_packet(nt_pkt);
+				packets_recv++;
 			}
 
 		}
@@ -460,6 +470,7 @@ void NoC::trace_rx()
 			//cout<<"Dependencies resolved, "<<+wnt_pkt->src<<" "<<+wnt_pkt->dst;
 			//cout<<" Cycle "<<wnt_pkt->cycle<<endl;
 			noc_inject_q.push(wnt_pkt);
+			packets_sent++;
 			wait_q.pop();
 		}
 	}

@@ -67,7 +67,7 @@ struct Packet {
 	size = sz;
 	flit_left = sz;
 	use_low_voltage_path = false;
-	nt_pkt = NULL;
+	nt_pkt = nullptr;
     }
 };
 

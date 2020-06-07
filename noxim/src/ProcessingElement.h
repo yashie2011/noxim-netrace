@@ -13,6 +13,7 @@
 
 #include <queue>
 #include <systemc.h>
+#include <string>
 
 #include "DataStructs.h"
 #include "GlobalTrafficTable.h"
@@ -45,11 +46,18 @@ SC_MODULE(ProcessingElement)
     bool current_level_rx;	// Current level for Alternating Bit Protocol (ABP)
     bool current_level_tx;	// Current level for Alternating Bit Protocol (ABP)
     queue < Packet > packet_queue;	// Local queue of packets
+    
     bool transmittedAtPreviousCycle;	// Used for distributions with memory
+    // yash changes
+    queue <Packet> enc_queue_in;
+    queue <Flit> dec_queue_in;
+    std::map<string, int> enc_lat;
 
     // Functions
     void rxProcess();		// The receiving process
     void txProcess();		// The transmitting process
+    void packet_enc();
+    void packet_dec();
     bool canShot(Packet & packet);	// True when the packet must be shot
     Flit nextFlit();	// Take the next flit of the current packet
     Packet trafficTest();	// used for testing traffic
@@ -86,6 +94,14 @@ SC_MODULE(ProcessingElement)
 
     // Constructor
     SC_CTOR(ProcessingElement) {
+		
+		enc_lat.insert(std::pair<string, int>("fort", 3));
+		enc_lat.insert(std::pair<string, int>("psec", 6));
+		enc_lat.insert(std::pair<string, int>("arnoc", 3));
+		enc_lat.insert(std::pair<string, int>("sentry", 2));
+		enc_lat.insert(std::pair<string, int>("base", 0));
+		
+		
 	SC_METHOD(rxProcess);
 	sensitive << reset;
 	sensitive << clock.pos();
@@ -93,6 +109,9 @@ SC_MODULE(ProcessingElement)
 	SC_METHOD(txProcess);
 	sensitive << reset;
 	sensitive << clock.pos();
+
+        SC_CTHREAD(packet_enc, clock.pos());
+        SC_CTHREAD(packet_dec, clock.pos());
     }
 
 };

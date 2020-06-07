@@ -72,7 +72,10 @@ SC_MODULE(NoC)
     // Global tables
     GlobalRoutingTable grtable;
     GlobalTrafficTable gttable;
-
+    
+    // for netrace traffic
+    int packets_sent;
+    int packets_recv;
 
     // Constructor
 
@@ -82,6 +85,8 @@ SC_MODULE(NoC)
 	buildMesh();
 	
 	GlobalParams::channel_selection = CHSEL_RANDOM;
+	packets_sent = 0;
+        packets_recv = 0;
 	// out of yaml configuration (experimental features)
 	//GlobalParams::channel_selection = CHSEL_FIRST_FREE;
 
@@ -96,9 +101,11 @@ SC_MODULE(NoC)
 	{
 		SC_METHOD(trace_tx);
 		sensitive<<clock.pos();
+		sensitive<<reset;
 
 		SC_METHOD(trace_rx);
 		sensitive<<clock.pos();
+		sensitive<<reset;
 
 	}
 

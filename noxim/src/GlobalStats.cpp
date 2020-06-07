@@ -333,22 +333,31 @@ void GlobalStats::showStats(std::ostream & out, bool detailed)
     }
 
     int total_cycles = GlobalParams::simulation_time - GlobalParams::stats_warm_up_time;
+    results["sim_time"] = total_cycles;
     out << "% Total received packets: " << getReceivedPackets() << endl;
+    results["Total received packets"] = getReceivedPackets();
     out << "% Total received flits: " << getReceivedFlits() << endl;
+    results["Total received flits"] = getReceivedFlits();
     out << "% Received/Ideal flits Ratio: " << getReceivedFlits()
 	/ (GlobalParams::packet_injection_rate * (GlobalParams::min_packet_size +
 		GlobalParams::max_packet_size)/2 * total_cycles * GlobalParams::mesh_dim_y * GlobalParams::mesh_dim_x) << endl;
     out << "% Average wireless utilization: " << getWirelessPackets()/(double)getReceivedPackets() << endl;
     out << "% Global average delay (cycles): " << getAverageDelay() << endl;
+    results["average_delay"] = getAverageDelay();
     out << "% Max delay (cycles): " << getMaxDelay() << endl;
     out << "% Network throughput (flits/cycle): " << getAggregatedThroughput() << endl;
+    results["NoC_throughput"] = getAggregatedThroughput();
     out << "% Average IP throughput (flits/cycle/IP): " << getThroughput() << endl;
     out << "% Total energy (J): " << getTotalPower() << endl;
+    results["energy"] = getTotalPower();
     out << "% \tDynamic energy (J): " << getDynamicPower() << endl;
     out << "% \tStatic energy (J): " << getStaticPower() << endl;
 
     if (GlobalParams::show_buffer_stats)
       showBufferStats(out);
+    
+    std::ofstream fout(GlobalParams::res_file);
+    fout << results; 
 
 }
 

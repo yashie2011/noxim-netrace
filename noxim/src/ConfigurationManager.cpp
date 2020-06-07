@@ -56,6 +56,8 @@ void loadConfiguration() {
     GlobalParams::traffic_distribution = config["traffic_distribution"].as<string>();
     //netrace interface
     GlobalParams::netrace_file = config["netrace_file"].as<string>();
+    GlobalParams::exp_type = config["exp_type"].as<string>();
+    GlobalParams::res_file = config["res_file"].as<string>();
 
     GlobalParams::traffic_table_filename = config["traffic_table_filename"].as<string>();
     GlobalParams::clock_period_ps = config["clock_period_ps"].as<int>();
@@ -496,6 +498,21 @@ void parseCmdLine(int arg_num, char *arg_vet[])
 		}
 		else assert(false);
 	    } 
+	    
+		else if (!strcmp(arg_vet[i], "-exp_type")){
+			char* exp_type = arg_vet[++i];
+			GlobalParams::exp_type=exp_type;
+		}
+		
+		else if (!strcmp(arg_vet[i], "-res_file")){
+			char* res_file = arg_vet[++i];
+			GlobalParams::res_file=res_file;
+		}
+		else if (!strcmp(arg_vet[i], "-net_file")){
+			char* trace_file = arg_vet[++i];
+			GlobalParams::netrace_file = trace_file;
+		}
+		
 	    else if (!strcmp(arg_vet[i], "-hs")) 
 	    {
 		int node = atoi(arg_vet[++i]);
